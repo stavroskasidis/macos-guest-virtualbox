@@ -1,26 +1,34 @@
-## One-key semi-automatic installer of macOS Mojave 10.14 on VirtualBox
+## Semi-automatic installer of macOS on VirtualBox
 
-The "one key" is enter, which has to be pressed whenever the virtual machine is ready for the next command. (Contrary to the script's name, the user has to use more than one key! There is one instance when the "host key" is used to release the mouse from the virtual machine, and a couple of instances where the user has to choose [y]es or [n]o!)
+### Supports macOS Mojave (10.14) and High Sierra (10.13)
+### macOS Catalina 10.15.2 fails to boot on VirtualBox as of the date of its release. Earlier versions of Catalina work, but they are not currently being distributed by Apple's software update servers, from which the script fetches the installer.
+
+The script is semi-automatic and requires a little user interaction. Most of the time the user simply has to press enter. There is one step where the user has to choose between [C]atalina, [M]ojave, or [H]igh Sierra, and a couple of instances where the user has to choose whether to delete or keep temporary files and previous installations.
 
 The goal of the script is to allow for a very easy installation without any closed-source additions or extra bootloaders.
 
-Tested on Cygwin and WSL, should work on most Linux distros.
+Tested on Cygwin. Works on macOS and WSL, should work on most Linux distros.
 
 ## iCloud and iMessage connectivity
+### Due to VirtualBox 6.1 NVRAM issues, iCloud and iMessage connectivity is not available on VirtualBox 6.1 as of the date of its release. Please use VirtualBox 6.0 instead.
 
-iCloud and iMessage and other connected Apple services require a valid device serial number. Set it before the installation by replacing `NOTAVALIDSN0` with a valid serial number, or after the installation with `VBoxManage setextradata "${vmname}" "VBoxInternal/Devices/efi/0/Config/DmiSystemSerial" "${serialnumber}"`. An invalid serial number that matches the correct structure for the device name and board ID might work, too.
+iCloud, iMessage, and other connected Apple services require a valid device name and serial number, board ID and serial number, and other genuine (or genuine-like) Apple parameters. These parameters may be set in the script before installation, or set after installation and applied with `./macos-guest-virtualbox.sh configure_vm`
 
 ## Storage size
 
-The script assigns the minimum required storage size for the installation. After the installation is complete, the virtual disk image may be increased through VirtualBox, and then the macOS system partition size may be increased. Inside the virtual machine run `sudo diskutil repairDisk disk0` and then from Disk Utility delete the "Free space" partition, allowing the system APFS container to take up the space.
+The script by default assigns the minimum required storage size for the installation of Catalina. After the installation is complete, the storage size may be increased. First increase the virtual disk image size through VirtualBox Manager or `VBoxManage`, then in Terminal in the virtual machine run `sudo diskutil repairDisk disk0`, and then `sudo diskutil apfs resizeContainer disk1 0` or from Disk Utility, after repairing the disk from Terminal, delete the "Free space" partition so it allows the system APFS container to take up the available space.
 
-## Unsupported features
+## Performance and unsupported features
 
-Developing and maintaining VirtualBox or macOS features is beyond the scope of this script. [Audio support](https://github.com/chris1111/VoodooHDA-2.9.0-Clover-V12/releases), USB device support, and other features are not currently implemented for macOS guests on Windows and Linux hosts.
+Developing and maintaining VirtualBox or macOS features is beyond the scope of this script. Some features may behave unexpectedly, such as USB device support, audio support, and other features.
+
+After successfully creating a working macOS virtual machine, consider importing it into QEMU/KVM so it can run with hardware passthrough at near-native performance. QEMU/KVM requires additional configuration that is beyond the scope of  the script.
 
 ## Dependencies
 
-* [VirtualBox](https://www.virtualbox.org/wiki/Downloads)≥5.2 with Extension Pack
-* `Bash`≥4 (run on Windows through [Cygwin](https://cygwin.com/install.html) or WSL) with `coreutils`
-* `unzip`, `wget` (install through package manager)
-* `dmg2img` (install through package manager on Linux or WSL; let the script download it automatically on Cygwin)
+* [VirtualBox](https://www.virtualbox.org/wiki/Downloads)≥6.0 with Extension Pack
+* `Bash`≥4 (GNU variant; run on Windows through [Cygwin](https://cygwin.com/install.html) or WSL)
+* `coreutils` (GNU variant; install through package manager)
+* `unzip` (install through package manager)
+* `wget` (install through package manager)
+* `dmg2img` (install through package manager on Linux, macOS, or WSL; let the script download it automatically on Cygwin)
